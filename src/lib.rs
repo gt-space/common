@@ -1,6 +1,10 @@
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, fmt};
 
+trait ToPrettyString {
+	fn to_pretty_string(&self) -> String;
+}
+
 /// Encodes possible measurements for every type of sensor on the vehicle.
 #[derive(Clone, Copy, Debug, Deserialize, Serialize)]
 pub enum Unit {
@@ -17,13 +21,26 @@ pub enum Unit {
 	NoData,
 }
 
+// TODO: Decide on the difference between fmt::Display and ToString
+// and decide which one to do for what
 impl fmt::Display for Unit {
 	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
 		match self {
-			Self::Psi(raw) => write!(f, "{raw:.2} psi"),
-			Self::Fahrenheit(raw) => write!(f, "{raw:.2} °F"),
+			Self::Psi(raw) => write!(f, "{raw} psi"),
+			Self::Fahrenheit(raw) => write!(f, "{raw} °F"),
 			Self::Volts(raw) => write!(f, "{raw} V"),
-			Self::NoData => write!(f, "\x1b[31mno data\x1b[0m"),
+			Self::NoData => write!(f, ""),
+		}
+	}
+}
+
+impl ToPrettyString for Unit {
+	fn to_pretty_string(&self) -> String {
+		match self {
+			Self::Psi(raw) => format!("{raw:.2} psi"),
+			Self::Fahrenheit(raw) => format!("{raw:.2} °F"),
+			Self::Volts(raw) => format!("{raw:.2} V"),
+			Self::NoData => "\x1b[31mno data\x1b[0m".to_owned(),
 		}
 	}
 }
@@ -59,9 +76,9 @@ impl fmt::Display for ValveState {
 	}
 }
 
-impl ValveState {
+impl ToPrettyString for ValveState {
 	/// Converts the valve state into a colored string ready to be displayed on the interface.
-	pub fn to_colored_string(&self) -> String {
+	fn to_pretty_string(&self) -> String {
 		match self {
 			Self::Open => "\x1b[32mopen\x1b[0m",
 			Self::Closed => "\x1b[32mclosed\x1b[0m",
