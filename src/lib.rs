@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, fmt};
 
-trait ToPrettyString {
+pub trait ToPrettyString {
 	fn to_pretty_string(&self) -> String;
 }
 
