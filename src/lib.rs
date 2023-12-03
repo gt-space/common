@@ -5,10 +5,13 @@ use std::{collections::HashMap, fmt};
 #[derive(Clone, Copy, Debug, Deserialize, Serialize)]
 pub enum Unit {
 	/// Preferred unit for pressure readings.
-	Psi(f32),
+	Psi(f64),
 
 	/// Preferred unit for temperature readings.
-	Fahrenheit(f32),
+	Fahrenheit(f64),
+
+	/// Preferred unit for electric potential readings and raw readings.
+	Volts(f64),
 
 	/// No data available.
 	NoData,
@@ -19,6 +22,7 @@ impl fmt::Display for Unit {
 		match self {
 			Self::Psi(raw) => write!(f, "{raw:.2} psi"),
 			Self::Fahrenheit(raw) => write!(f, "{raw:.2} °F"),
+			Self::Volts(raw) => write!(f, "{raw} V"),
 			Self::NoData => write!(f, "\x1b[31mno data\x1b[0m"),
 		}
 	}
