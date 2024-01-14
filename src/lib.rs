@@ -112,3 +112,42 @@ impl VehicleState {
 		}
 	}
 }
+
+#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ChannelType {
+	CurrentLoop,
+	ValveVoltage,
+	ValveCurrent,
+	RailVoltage,
+	RailCurrent,
+	DifferentialSignal,
+	Rtd,
+	Tc,
+}
+
+#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum Computer {
+	Flight,
+	Ground,
+}
+
+/// The mapping of an individual node.
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct NodeMapping {
+	/// The text identifier, or name, of the node.
+	pub text_id: String,
+	
+	/// A number identifying which SAM board the node is on.
+	pub board_id: u32,
+
+	/// The channel type of the node, such as "valve".
+	pub channel_type: ChannelType,
+
+	/// A number identifying which channel on the SAM board controls the node.
+	pub channel: u32,
+
+	/// Which computer controls the SAM board, "flight" or "ground".
+	pub computer: Computer,
+}
