@@ -19,26 +19,31 @@ pub trait ToPrettyString {
 /// Encodes possible measurements for every type of sensor on the vehicle.
 #[derive(Clone, Copy, Debug, Deserialize, Serialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
+#[allow(missing_docs)]
 pub enum Unit {
 	/// Preferred unit for pressure readings.
-	Psi(f64),
+	Psi { value: f64 },
 
 	/// Preferred unit for temperature readings.
-	Fahrenheit(f64),
+	Fahrenheit { value: f64 },
 
 	/// Preferred unit for electric potential readings and raw readings.
-	Volts(f64),
+	Volts { value: f64 },
 
 	/// No data available.
 	NoData,
+
+	// you may wonder why each variant has an enclosed "value" instead of using the tuple syntax Psi(f64).
+	// this is because serde really hates serializing internally tagged enums with tuple variants. it throws
+	// a strange error at runtime, but does not hint to this at compile-time. it should stay this way.
 }
 
 impl fmt::Display for Unit {
 	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
 		match self {
-			Self::Psi(raw) => write!(f, "{raw} psi"),
-			Self::Fahrenheit(raw) => write!(f, "{raw} °F"),
-			Self::Volts(raw) => write!(f, "{raw} V"),
+			Self::Psi { value } => write!(f, "{value} psi"),
+			Self::Fahrenheit { value } => write!(f, "{value} °F"),
+			Self::Volts { value } => write!(f, "{value} V"),
 			Self::NoData => write!(f, ""),
 		}
 	}
@@ -47,9 +52,9 @@ impl fmt::Display for Unit {
 impl ToPrettyString for Unit {
 	fn to_pretty_string(&self) -> String {
 		match self {
-			Self::Psi(raw) => format!("{raw:.2} psi"),
-			Self::Fahrenheit(raw) => format!("{raw:.2} °F"),
-			Self::Volts(raw) => format!("{raw:.2} V"),
+			Self::Psi { value } => format!("{value:.2} psi"),
+			Self::Fahrenheit { value } => format!("{value:.2} °F"),
+			Self::Volts { value } => format!("{value:.2} V"),
 			Self::NoData => "\x1b[31mno data\x1b[0m".to_owned(),
 		}
 	}
@@ -167,7 +172,6 @@ impl ToSql for ChannelType {
 
 		json.pop();
 		json.remove(0);
-		
 
 		Ok(ToSqlOutput::Owned(rusqlite::types::Value::Text(json)))
 	}
