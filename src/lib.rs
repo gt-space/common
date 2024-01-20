@@ -18,6 +18,7 @@ pub trait ToPrettyString {
 
 /// Encodes possible measurements for every type of sensor on the vehicle.
 #[derive(Clone, Copy, Debug, Deserialize, Serialize)]
+#[serde(tag = "type", rename_all = "snake_case")]
 pub enum Unit {
 	/// Preferred unit for pressure readings.
 	Psi(f64),
@@ -56,6 +57,7 @@ impl ToPrettyString for Unit {
 
 /// Encodes every possible valve state.
 #[derive(Clone, Copy, Debug, Deserialize, Serialize)]
+#[serde(rename_all = "snake_case")]
 pub enum ValveState {
 	/// Acknowledged open.
 	Open,
