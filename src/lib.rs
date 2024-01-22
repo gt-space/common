@@ -16,47 +16,49 @@ pub trait ToPrettyString {
 	fn to_pretty_string(&self) -> String;
 }
 
-/// Encodes possible measurements for every type of sensor on the vehicle.
+/// Every unit needed to be passed around in communications, mainly for sensor readings.
 #[derive(Clone, Copy, Debug, Deserialize, Serialize)]
-#[serde(tag = "type", rename_all = "snake_case")]
-#[allow(missing_docs)]
+#[serde(rename_all = "snake_case")]
 pub enum Unit {
-	/// Preferred unit for pressure readings.
-	Psi { value: f64 },
+	/// Pressure, in pounds per square inch.
+	Psi,
+	
+	/// Temperature, in degrees Fahrenheit.
+	Fahrenheit,
 
-	/// Preferred unit for temperature readings.
-	Fahrenheit { value: f64 },
-
-	/// Preferred unit for electric potential readings and raw readings.
-	Volts { value: f64 },
-
-	/// No data available.
-	NoData,
-
-	// you may wonder why each variant has an enclosed "value" instead of using the tuple syntax Psi(f64).
-	// this is because serde really hates serializing internally tagged enums with tuple variants. it throws
-	// a strange error at runtime, but does not hint to this at compile-time. it should stay this way.
+	/// Electric potential, in volts.
+	Volts,
 }
 
 impl fmt::Display for Unit {
 	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-		match self {
-			Self::Psi { value } => write!(f, "{value} psi"),
-			Self::Fahrenheit { value } => write!(f, "{value} °F"),
-			Self::Volts { value } => write!(f, "{value} V"),
-			Self::NoData => write!(f, ""),
-		}
+		write!(f, "{}", match self {
+			Self::Psi => "psi",
+			Self::Fahrenheit => "°F",
+			Self::Volts => "V",
+		})
 	}
 }
 
-impl ToPrettyString for Unit {
+/// Encodes possible measurements for every type of sensor on the vehicle.
+#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
+pub struct Measurement {
+	/// The raw value of the measurement, independent of the unit.
+	pub value: f64,
+
+	/// The unit of the measurement, independent of the value.
+	pub unit: Unit,
+}
+
+impl fmt::Display for Measurement {
+	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+		write!(f, "{} {}", self.value, self.unit)
+	}
+}
+
+impl ToPrettyString for Measurement {
 	fn to_pretty_string(&self) -> String {
-		match self {
-			Self::Psi { value } => format!("{value:.2} psi"),
-			Self::Fahrenheit { value } => format!("{value:.2} °F"),
-			Self::Volts { value } => format!("{value:.2} V"),
-			Self::NoData => "\x1b[31mno data\x1b[0m".to_owned(),
-		}
+		format!("\x1b[1m{:.2} {}\x1b[0m", self.value, self.unit)
 	}
 }
 
@@ -75,9 +77,6 @@ pub enum ValveState {
 
 	/// Commanded closed, but currently open.
 	CommandedClosed,
-	
-	/// No data on the state of the valve.
-	NoData,
 }
 
 impl fmt::Display for ValveState {
@@ -87,7 +86,6 @@ impl fmt::Display for ValveState {
 			Self::Closed => "closed",
 			Self::CommandedOpen => "commanded open",
 			Self::CommandedClosed => "commanded closed",
-			Self::NoData => "",
 		})
 	}
 }
@@ -100,7 +98,6 @@ impl ToPrettyString for ValveState {
 			Self::Closed => "\x1b[32mclosed\x1b[0m",
 			Self::CommandedOpen => "\x1b[33mclosed\x1b[0m",
 			Self::CommandedClosed => "\x1b[33mopen\x1b[0m",
-			Self::NoData => "\x1b[31mno data\x1b[0m",
 		}.to_owned()
 	}
 }
@@ -109,10 +106,10 @@ impl ToPrettyString for ValveState {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct VehicleState {
 	/// Holds the current states of all valves on the vehicle.
-	pub valve_states: HashMap<String, ValveState>,
+	pub valve_states: HashMap<String, Option<ValveState>>,
 
 	/// Holds the latest readings of all sensors on the vehicle.
-	pub sensor_readings: HashMap<String, Unit>,
+	pub sensor_readings: HashMap<String, Option<Measurement>>,
 
 	/// Holds the last update times for each valve and sensor.
 	pub update_times: HashMap<String, f64>,
