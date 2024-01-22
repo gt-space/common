@@ -4,9 +4,11 @@
 //! More specifically, the types sent across the network between the flight computer, control server,
 //! GUI, and SAM boards are all stored here.
 
-use rusqlite::{ToSql, types::{ToSqlOutput, ValueRef, FromSql, FromSqlResult, FromSqlError}};
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, fmt};
+
+#[cfg(feature = "rusqlite")]
+use rusqlite::{ToSql, types::{ToSqlOutput, ValueRef, FromSql, FromSqlResult, FromSqlError}};
 
 /// Trait providing a method to create a pretty, terminal-friendly representation of the underlying.
 pub trait ToPrettyString {
@@ -155,6 +157,7 @@ pub enum ChannelType {
 	Tc,
 }
 
+#[cfg(feature = "rusqlite")]
 impl ToSql for ChannelType {
 	fn to_sql(&self) -> rusqlite::Result<ToSqlOutput<'_>> {
 		// listen, I hate this.
@@ -174,6 +177,7 @@ impl ToSql for ChannelType {
 	}
 }
 
+#[cfg(feature = "rusqlite")]
 impl FromSql for ChannelType {
 	fn column_result(value: ValueRef<'_>) -> FromSqlResult<Self> {
 		if let ValueRef::Text(text) = value {
@@ -203,6 +207,7 @@ pub enum Computer {
 	Ground,
 }
 
+#[cfg(feature = "rusqlite")]
 impl ToSql for Computer {
 	fn to_sql(&self) -> rusqlite::Result<ToSqlOutput<'_>> {
 		// see the ChannelType ToSql comment for details
@@ -216,6 +221,7 @@ impl ToSql for Computer {
 	}
 }
 
+#[cfg(feature = "rusqlite")]
 impl FromSql for Computer {
 	fn column_result(value: ValueRef<'_>) -> FromSqlResult<Self> {
 		if let ValueRef::Text(text) = value {
