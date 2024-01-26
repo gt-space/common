@@ -4,6 +4,8 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+jeflog = "0.1.0"
+pyo3 = "0.20.2"
 rusqlite = { version = "0.30", optional = true }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0.111"
