@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use super::ChannelType;
 
 /// A control message send from the flight computer to a SAM board.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub enum SamControlMessage {
 	/// Instructs the board to actuate a valve.
 	ActuateValve {
@@ -23,7 +23,7 @@ pub enum SamControlMessage {
 }
 
 /// A single raw data point without a unit but with a timestamp.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct RawDataPoint {
 	/// The raw float value of the measurement, no units.
 	pub value: f64,
@@ -33,7 +33,7 @@ pub struct RawDataPoint {
 }
 
 /// A burst of channel data, typically sent from a SAM board.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct ChannelDataBurst {
 	/// The channel that the data was recorded from.
 	pub channel: u32,
@@ -46,7 +46,7 @@ pub struct ChannelDataBurst {
 }
 
 /// A generic data message that can originate from any subsystem.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub enum DataMessage {
 	/// An array of channel data bursts containing arrays of raw data points.
 	Sam(Vec<ChannelDataBurst>),

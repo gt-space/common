@@ -9,7 +9,7 @@ mod sam;
 pub use sam::*;
 
 /// Every unit needed to be passed around in communications, mainly for sensor readings.
-#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
+#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Unit {
 	/// Pressure, in pounds per square inch.
@@ -33,7 +33,7 @@ impl fmt::Display for Unit {
 }
 
 /// Encodes possible measurements for every type of sensor on the vehicle.
-#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
+#[derive(Clone, Copy, Debug, Deserialize, PartialEq, Serialize)]
 pub struct Measurement {
 	/// The raw value of the measurement, independent of the unit.
 	pub value: f64,
@@ -55,7 +55,7 @@ impl ToPrettyString for Measurement {
 }
 
 /// Encodes every possible valve state.
-#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
+#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum ValveState {
 	/// Acknowledged open.
@@ -95,7 +95,7 @@ impl ToPrettyString for ValveState {
 }
 
 /// Holds the state of the vehicle using `HashMap`s which convert a node's name to its state.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct VehicleState {
 	/// Holds the current states of all valves on the vehicle.
 	pub valve_states: HashMap<String, ValveState>,
@@ -119,7 +119,7 @@ impl VehicleState {
 }
 
 /// Represents all possible channel types that may be used in a `NodeMapping`.
-#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
+#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum ChannelType {
 	/// A current loop sensor, such as a PT.
@@ -187,7 +187,7 @@ impl FromSql for ChannelType {
 }
 
 /// Used in a `NodeMapping` to determine which computer the action should be send to.
-#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
+#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Computer {
 	/// The flight computer
@@ -231,7 +231,7 @@ impl FromSql for Computer {
 }
 
 /// The mapping of an individual node.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct NodeMapping {
 	/// The text identifier, or name, of the node.
 	pub text_id: String,
@@ -250,7 +250,7 @@ pub struct NodeMapping {
 }
 
 /// A sequence written in Python, used by the flight computer to execute arbitrary operator code.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct Sequence {
 	/// The unique, human-readable name which identifies the sequence.
 	///
@@ -263,7 +263,7 @@ pub struct Sequence {
 }
 
 /// A trigger with a
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct Trigger {
 	/// The unique, human-readable name which identifies the trigger.
 	pub name: String,
@@ -276,7 +276,7 @@ pub struct Trigger {
 }
 
 /// A message sent from the control server to the flight computer.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub enum FlightControlMessage {
 	/// A set of mappings to be applied immediately.
 	Mappings(Vec<NodeMapping>),
