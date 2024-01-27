@@ -236,8 +236,8 @@ pub struct NodeMapping {
 	/// The text identifier, or name, of the node.
 	pub text_id: String,
 	
-	/// A number identifying which SAM board the node is on.
-	pub board_id: u32,
+	/// A string identifying an individual board, corresponding to the hostname sans ".local".
+	pub board_id: String,
 
 	/// The channel type of the node, such as "valve".
 	pub channel_type: ChannelType,

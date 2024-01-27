@@ -7,7 +7,7 @@ pub enum SamControlMessage {
 	/// Instructs the board to actuate a valve.
 	ActuateValve {
 		/// The channel that the valve is connected to.
-		channel: i32,
+		channel: u32,
 
 		/// Set to `true` for open and `false` for close.
 		open: bool,
@@ -15,7 +15,7 @@ pub enum SamControlMessage {
 	/// Instructs the board to set an LED.
 	SetLed {
 		/// The channel that the LED is wired to.
-		channel: i32,
+		channel: u32,
 
 		/// Set to `true` to turn off and `false` to turn off.
 		on: bool,
@@ -36,7 +36,7 @@ pub struct RawDataPoint {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct ChannelDataBurst {
 	/// The channel that the data was recorded from.
-	pub channel: i32,
+	pub channel: u32,
 
 	/// The channel type (implying unit) that the data is from.
 	pub channel_type: ChannelType,
