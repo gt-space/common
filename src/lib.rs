@@ -4,7 +4,10 @@
 //! More specifically, the types sent across the network between the flight computer, control server,
 //! GUI, and SAM boards are all stored here.
 
+/// All structs and definitions related to communication between different subsystems.
 pub mod comm;
+
+/// All components necessary to run Python sequences.
 pub mod sequence;
 
 /// Trait providing a method to create a pretty, terminal-friendly representation of the underlying.

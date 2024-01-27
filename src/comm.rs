@@ -1,9 +1,12 @@
 use crate::ToPrettyString;
 use serde::{Deserialize, Serialize};
-use std::{collections::HashMap, fmt, time::Instant};
+use std::{collections::HashMap, fmt};
 
 #[cfg(feature = "rusqlite")]
 use rusqlite::{ToSql, types::{ToSqlOutput, ValueRef, FromSql, FromSqlResult, FromSqlError}};
+
+mod sam;
+pub use sam::*;
 
 /// Every unit needed to be passed around in communications, mainly for sensor readings.
 #[derive(Clone, Copy, Debug, Deserialize, Serialize)]
@@ -283,32 +286,4 @@ pub enum FlightControlMessage {
 
 	/// A trigger to be checked by the flight computer.
 	Trigger(Trigger),
-}
-
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub enum SamControlMessage {
-	ClickValve {
-		channel: i32,
-		open: bool,
-	},
-	SetLed {
-		channel: i32,
-		set: bool,
-	}
-}
-
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct RawDataPoint {
-	value: f64,
-	timestamp: f64,
-}
-
-/// A generic data message that can originate from any subsystem.
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub enum DataMessage {
-	/// Maps channel ID to an array of raw data points for SAM board data.
-	Sam(HashMap<i32, Vec<RawDataPoint>>),
-	
-	/// Data originating from the BMS.
-	Bms,
 }
