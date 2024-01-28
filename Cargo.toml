@@ -5,6 +5,7 @@ edition = "2021"
 
 [dependencies]
 jeflog = "0.1.0"
+postcard = "^1"
 pyo3 = "0.20.2"
 rusqlite = { version = "0.30", optional = true }
 serde = { version = "1.0", features = ["derive"] }
@@ -12,3 +13,6 @@ serde_json = "1.0.111"
 
 [dev-dependencies]
 postcard = { version = "^1", features = ["alloc"] }
+
+[features]
+sequences = []
