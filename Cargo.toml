@@ -15,4 +15,4 @@ serde_json = "1.0.111"
 postcard = { version = "^1", features = ["alloc"] }
 
 [features]
-sequences = []
+sequences = ["dep:pyo3"]
