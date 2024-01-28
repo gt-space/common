@@ -8,6 +8,7 @@
 pub mod comm;
 
 /// All components necessary to run Python sequences.
+#[cfg(feature = "sequences")]
 pub mod sequence;
 
 /// Trait providing a method to create a pretty, terminal-friendly representation of the underlying.
