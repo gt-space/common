@@ -15,8 +15,8 @@ pub enum Unit {
 	/// Pressure, in pounds per square inch.
 	Psi,
 	
-	/// Temperature, in degrees Fahrenheit.
-	Fahrenheit,
+	/// Temperature, in Kelvin.
+	Kelvin,
 
 	/// Electric potential, in volts.
 	Volts,
@@ -26,7 +26,7 @@ impl fmt::Display for Unit {
 	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
 		write!(f, "{}", match self {
 			Self::Psi => "psi",
-			Self::Fahrenheit => "°F",
+			Self::Kelvin => "K",
 			Self::Volts => "V",
 		})
 	}

@@ -24,7 +24,7 @@ fn sequences(py: Python<'_>, module: &PyModule) -> PyResult<()> {
 	module.add("psi", Py::new(py, Pressure::new(1.0))?)?;
 	module.add("V", Py::new(py, ElectricPotential::new(1.0))?)?;
 	module.add("mV", Py::new(py, ElectricPotential::new(0.001))?)?;
-	module.add("F", Py::new(py, Temperature::new(1.0))?)?;
+	module.add("K", Py::new(py, Temperature::new(1.0))?)?;
 
 	module.add_class::<Sensor>()?;
 	module.add_class::<Valve>()?;
