@@ -13,17 +13,22 @@ use std::{net::UdpSocket, sync::{Arc, Mutex, OnceLock}};
 
 #[pymodule]
 fn sequences(py: Python<'_>, module: &PyModule) -> PyResult<()> {
+	module.add_class::<Current>()?;
 	module.add_class::<Duration>()?;
-	module.add_class::<Pressure>()?;
 	module.add_class::<ElectricPotential>()?;
+	module.add_class::<Force>()?;
+	module.add_class::<Pressure>()?;
 	module.add_class::<Temperature>()?;
 
+	module.add("A", Py::new(py, Current::new(1.0))?)?;
+	module.add("mA", Py::new(py, Current::new(0.001))?)?;
 	module.add("s", Py::new(py, Duration::new(1.0))?)?;
 	module.add("ms", Py::new(py, Duration::new(0.001))?)?;
 	module.add("us", Py::new(py, Duration::new(0.000001))?)?;
-	module.add("psi", Py::new(py, Pressure::new(1.0))?)?;
 	module.add("V", Py::new(py, ElectricPotential::new(1.0))?)?;
 	module.add("mV", Py::new(py, ElectricPotential::new(0.001))?)?;
+	module.add("lbf", Py::new(py, Force::new(1.0))?)?;
+	module.add("psi", Py::new(py, Pressure::new(1.0))?)?;
 	module.add("K", Py::new(py, Temperature::new(1.0))?)?;
 
 	module.add_class::<Sensor>()?;
@@ -76,7 +81,7 @@ pub fn run(sequence: Sequence) {
 		for mapping in &*mappings {
 			// TODO: inspect this definition again. this may be redefining values unnecessarily.
 			let definition = match mapping.channel_type {
-				ChannelType::ValveVoltage | ChannelType::ValveCurrent => format!("{0} = Valve('{0}')", mapping.text_id),
+				ChannelType::ValveCurrent => format!("{0} = Valve('{0}')", mapping.text_id),
 				_ => format!("{0} = Sensor('{0}')", mapping.text_id),
 			};
 

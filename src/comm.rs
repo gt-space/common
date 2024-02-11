@@ -12,11 +12,17 @@ pub use sam::*;
 #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Unit {
+	/// Current, in amperes.
+	Amps,
+
 	/// Pressure, in pounds per square inch.
 	Psi,
 	
 	/// Temperature, in Kelvin.
 	Kelvin,
+
+	/// Force, in pounds.
+	Pounds,
 
 	/// Electric potential, in volts.
 	Volts,
@@ -25,8 +31,10 @@ pub enum Unit {
 impl fmt::Display for Unit {
 	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
 		write!(f, "{}", match self {
+			Self::Amps => "A",
 			Self::Psi => "psi",
 			Self::Kelvin => "K",
+			Self::Pounds => "lbf",
 			Self::Volts => "V",
 		})
 	}
@@ -58,6 +66,9 @@ impl ToPrettyString for Measurement {
 #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum ValveState {
+	/// Valve disconnected.
+	Disconnected,
+
 	/// Acknowledged open.
 	Open,
 
@@ -74,6 +85,7 @@ pub enum ValveState {
 impl fmt::Display for ValveState {
 	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
 		write!(f, "{}", match self {
+			Self::Disconnected => "disconnected",
 			Self::Open => "open",
 			Self::Closed => "closed",
 			Self::CommandedOpen => "commanded open",
@@ -86,6 +98,7 @@ impl ToPrettyString for ValveState {
 	/// Converts the valve state into a colored string ready to be displayed on the interface.
 	fn to_pretty_string(&self) -> String {
 		match self {
+			Self::Disconnected => "\x1b[31mdisconnected\x1b[0m",
 			Self::Open => "\x1b[32mopen\x1b[0m",
 			Self::Closed => "\x1b[32mclosed\x1b[0m",
 			Self::CommandedOpen => "\x1b[33mclosed\x1b[0m",
@@ -119,11 +132,11 @@ impl VehicleState {
 }
 
 /// Represents all possible channel types that may be used in a `NodeMapping`.
-#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Copy, Debug, Deserialize, PartialEq, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum ChannelType {
-	/// A current loop sensor, such as a PT.
-	CurrentLoop,
+	/// A pressure transducer, formerly known as CurrentLoop, which measures the pressure of a fluid.
+	Pt,
 
 	/// The voltage present on a pin connected to a valve.
 	ValveVoltage,
@@ -137,14 +150,30 @@ pub enum ChannelType {
 	/// The current flowing through the power rail of the board.
 	RailCurrent,
 
-	/// The signal carried by a differential pair.
-	DifferentialSignal,
+	/// The signal from a load cell, carried by a differential pair.
+	LoadCell,
 
 	/// The channel of a resistance thermometer, measuring temperature.
 	Rtd,
 
 	/// The channel of a thermocouple, measuring temperature.
 	Tc,
+}
+
+impl ChannelType {
+	/// Gets the associated unit for the given channel type.
+	pub fn unit(&self) -> Unit {
+		match self {
+			Self::Pt => Unit::Psi,
+			Self::ValveVoltage => Unit::Volts,
+			Self::ValveCurrent => Unit::Amps,
+			Self::RailVoltage => Unit::Volts,
+			Self::RailCurrent => Unit::Amps,
+			Self::LoadCell => Unit::Pounds,
+			Self::Rtd => Unit::Kelvin,
+			Self::Tc => Unit::Kelvin,
+		}
+	}
 }
 
 #[cfg(feature = "rusqlite")]
@@ -231,7 +260,7 @@ impl FromSql for Computer {
 }
 
 /// The mapping of an individual node.
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct NodeMapping {
 	/// The text identifier, or name, of the node.
 	pub text_id: String,
@@ -247,6 +276,31 @@ pub struct NodeMapping {
 
 	/// Which computer controls the SAM board, "flight" or "ground".
 	pub computer: Computer,
+
+	// the optional parameters below are only needed for sensors with certain channel types
+	// if you're wondering why these are not kept with the ChannelType variants, that is
+	// because those variants are passed back from the SAM boards with data measurements.
+	// the SAM boards have no access to these factors and even if they did, it would make
+	// more sense for them to just convert the measurements directly.
+	//
+	// tl;dr this is correct and reasonable.
+
+	/// The scale factor for converting a voltage reading.
+	/// This is only used for sensors with channel type PT.
+	pub scale: Option<f64>,
+
+	/// The calibrated offset of the sensor, in Volts.
+	/// This is only used for sensors with channel type PT.
+	pub offset: Option<f64>,
+
+	/// The threshold, in Amps, at which the valve is considered connected.
+	pub connected_threshold: Option<f64>,
+
+	/// The threshold, in Amps, at which the valve is considered powered.
+	pub powered_threshold: Option<f64>,
+
+	/// Indicator of whether the valve is normally open or normally closed.
+	pub normally_closed: Option<bool>,
 }
 
 /// A sequence written in Python, used by the flight computer to execute arbitrary operator code.

@@ -67,9 +67,11 @@ macro_rules! create_unit {
 	}
 }
 
+create_unit!(Current, "A");
 create_unit!(Duration, "s");
-create_unit!(Pressure, "psi");
 create_unit!(ElectricPotential, "V");
+create_unit!(Force, "lbf");
+create_unit!(Pressure, "psi");
 create_unit!(Temperature, "K");
 
 impl From<&Duration> for std::time::Duration {
@@ -87,9 +89,11 @@ impl From<&std::time::Duration> for Duration {
 impl IntoPy<PyObject> for Measurement {
 	fn into_py(self, py: Python<'_>) -> PyObject {
 		match self.unit {
-			Unit::Volts => ElectricPotential::new(self.value).into_py(py),
+			Unit::Amps => Current::new(self.value).into_py(py),
 			Unit::Kelvin => Temperature::new(self.value).into_py(py),
+			Unit::Pounds => Force::new(self.value).into_py(py),
 			Unit::Psi => Pressure::new(self.value).into_py(py),
+			Unit::Volts => ElectricPotential::new(self.value).into_py(py),
 		}
 	}
 }

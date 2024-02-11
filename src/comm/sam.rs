@@ -22,34 +22,27 @@ pub enum SamControlMessage {
 	}
 }
 
-/// A single raw data point without a unit but with a timestamp.
+/// A single data point with a timestamp and channel, no units.
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
-pub struct RawDataPoint {
+pub struct DataPoint {
 	/// The raw float value of the measurement, no units.
 	pub value: f64,
 	
 	/// The exact UNIX timestamp of when this single data point was recorded.
 	pub timestamp: f64,
-}
 
-/// A burst of channel data, typically sent from a SAM board.
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
-pub struct ChannelDataBurst {
-	/// The channel that the data was recorded from.
+	/// The channel that the data point was recorded from.
 	pub channel: u32,
 
-	/// The channel type (implying unit) that the data is from.
+	/// The channel 
 	pub channel_type: ChannelType,
-	
-	/// The array of raw data points recorded from the channel.
-	pub data_points: Vec<RawDataPoint>,
 }
 
 /// A generic data message that can originate from any subsystem.
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub enum DataMessage {
-	/// An array of channel data bursts containing arrays of raw data points.
-	Sam(Vec<ChannelDataBurst>),
+	/// An array of channel data points.
+	Sam(Vec<DataPoint>),
 	
 	/// Data originating from the BMS.
 	Bms,
