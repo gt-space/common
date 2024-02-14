@@ -295,6 +295,7 @@ pub struct NodeMapping {
 
 	/// The calibrated offset of the sensor.
 	/// This is only used for sensors with channel type PT.
+	#[serde(default)]
 	pub calibrated_offset: f64,
 
 	/// The threshold, in Amps, at which the valve is considered connected.
