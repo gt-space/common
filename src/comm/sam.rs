@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use std::borrow::Cow;
 use super::ChannelType;
 
 /// A control message send from the flight computer to a SAM board.
@@ -40,9 +41,9 @@ pub struct DataPoint {
 
 /// A generic data message that can originate from any subsystem.
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
-pub enum DataMessage {
+pub enum DataMessage<'a> {
 	/// An array of channel data points.
-	Sam(Vec<DataPoint>),
+	Sam(Cow<'a, Vec<DataPoint>>),
 	
 	/// Data originating from the BMS.
 	Bms,

@@ -136,7 +136,7 @@ impl VehicleState {
 #[serde(rename_all = "snake_case")]
 pub enum ChannelType {
 	/// A pressure transducer, formerly known as CurrentLoop, which measures the pressure of a fluid.
-	Pt,
+	CurrentLoop,
 
 	/// The voltage present on a pin connected to a valve.
 	ValveVoltage,
@@ -151,7 +151,7 @@ pub enum ChannelType {
 	RailCurrent,
 
 	/// The signal from a load cell, carried by a differential pair.
-	LoadCell,
+	DifferentialSignal,
 
 	/// The channel of a resistance thermometer, measuring temperature.
 	Rtd,
@@ -164,12 +164,12 @@ impl ChannelType {
 	/// Gets the associated unit for the given channel type.
 	pub fn unit(&self) -> Unit {
 		match self {
-			Self::Pt => Unit::Psi,
+			Self::CurrentLoop => Unit::Psi,
 			Self::ValveVoltage => Unit::Volts,
 			Self::ValveCurrent => Unit::Amps,
 			Self::RailVoltage => Unit::Volts,
 			Self::RailCurrent => Unit::Amps,
-			Self::LoadCell => Unit::Pounds,
+			Self::DifferentialSignal => Unit::Pounds,
 			Self::Rtd => Unit::Kelvin,
 			Self::Tc => Unit::Kelvin,
 		}
@@ -285,13 +285,17 @@ pub struct NodeMapping {
 	//
 	// tl;dr this is correct and reasonable.
 
-	/// The scale factor for converting a voltage reading.
-	/// This is only used for sensors with channel type PT.
-	pub scale: Option<f64>,
+	/// The maximum value reading of the sensor.
+	/// This is only used for sensors with channel type CurrentLoop or DifferentialSignal.
+	pub max: Option<f64>,
 
-	/// The calibrated offset of the sensor, in Volts.
+	/// The minimum value reading of the sensor.
+	/// This is only used for sensors with channel type CurrentLoop or DifferentialSignal.
+	pub min: Option<f64>,
+
+	/// The calibrated offset of the sensor.
 	/// This is only used for sensors with channel type PT.
-	pub offset: Option<f64>,
+	pub calibrated_offset: f64,
 
 	/// The threshold, in Amps, at which the valve is considered connected.
 	pub connected_threshold: Option<f64>,
