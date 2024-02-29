@@ -9,7 +9,7 @@ mod sam;
 pub use sam::*;
 
 /// Every unit needed to be passed around in communications, mainly for sensor readings.
-#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Unit {
 	/// Current, in amperes.
@@ -63,7 +63,7 @@ impl ToPrettyString for Measurement {
 }
 
 /// Encodes every possible valve state.
-#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum ValveState {
 	/// Valve disconnected.
