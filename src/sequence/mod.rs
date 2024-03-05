@@ -8,7 +8,7 @@ use jeflog::{fail, warn};
 use pyo3::{pymodule, types::PyModule, wrap_pyfunction, Py, PyResult, Python};
 pub use unit::*;
 
-use crate::comm::{NodeMapping, Sequence, VehicleState, ChannelType};
+use crate::comm::{NodeMapping, SensorType, Sequence, VehicleState};
 use std::{net::UdpSocket, sync::{Arc, Mutex, OnceLock}};
 
 #[pymodule]
@@ -79,14 +79,13 @@ pub fn run(sequence: Sequence) {
 		}
 
 		for mapping in &*mappings {
-			// TODO: inspect this definition again. this may be redefining values unnecessarily.
-			let definition = match mapping.channel_type {
-				ChannelType::ValveCurrent => format!("{0} = Valve('{0}')", mapping.text_id),
+			let definition = match mapping.sensor_type {
+				SensorType::Valve => format!("{0} = Valve('{0}')", mapping.text_id),
 				_ => format!("{0} = Sensor('{0}')", mapping.text_id),
 			};
 
 			if let Err(error) = py.run(&definition, None, None) {
-				fail!("Failed to define {} as a mapping: {error}", mapping.text_id);
+				fail!("Failed to define '{}' as a mapping: {error}", mapping.text_id);
 				return;
 			}
 		}

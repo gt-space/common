@@ -1,7 +1,8 @@
+use jeflog::{fail, warn};
+use pyo3::{pyclass, pyclass::CompareOp, pymethods, types::PyNone, PyAny, IntoPy, PyObject, PyResult, Python, ToPyObject};
+use std::net::{SocketAddr, ToSocketAddrs, UdpSocket};
 use crate::comm::SamControlMessage;
-use jeflog::fail;
-use pyo3::{pyclass, pyclass::CompareOp, pymethods, types::PyNone, IntoPy, PyAny, PyObject, PyResult, Python, ToPyObject};
-use std::net::{ToSocketAddrs, UdpSocket};
+
 use super::{MAPPINGS, SAM_SOCKET, VEHICLE_STATE};
 
 /// A Python-exposed class that allows for interacting with a sensor.
@@ -38,7 +39,7 @@ impl Sensor {
 		Python::with_gil(|py| {
 			measurement.map_or(
 				PyNone::get(py).to_object(py),
-				|measurement| measurement.into_py(py)
+				|measurement| measurement.into_py(py),
 			)
 		})
 	}
@@ -92,27 +93,39 @@ impl Valve {
 			fail!("Failed to actuate valve: mapping {} is not defined.", self.name);
 			return;
 		};
-		
-		let message = SamControlMessage::ActuateValve { channel: mapping.channel, open };
 
-		// TODO: switch to tcp
+		let normally_closed = match mapping.normally_closed {
+			Some(nc) => nc,
+			None => {
+				warn!("Normal state not defined for {}. Default to normally closed.", mapping.text_id);
+				true
+			}
+		};
+		
+		let message = SamControlMessage::ActuateValve {
+			channel: mapping.channel,
+			powered: normally_closed == open
+		};
+
+		// TODO: switch this soon
 		let address = format!("{}.local:8378", mapping.board_id)
 			.to_socket_addrs()
 			.ok()
-			.and_then(|mut addresses| addresses.find(|address| address.is_ipv4()));
+			.and_then(|mut addresses| addresses.find(SocketAddr::is_ipv4));
 
 		if let Some(address) = address {
 			let Ok(serialized) = postcard::to_allocvec(&message) else {
-				fail!("Failed to actuate valve: could not serialize message with Postcard.");
+				fail!("Failed to serialize valve actuation control message.");
 				return;
 			};
 
 			if let Err(error) = socket.send_to(&serialized, address) {
-				fail!("Failed to actuate valve: {error}");
+				fail!("Failed to send valve actuation command: {error}");
 				return;
 			}
 		} else {
-			fail!("Failed to actuate valve: address of board '{}' not found.", mapping.board_id);
+			fail!("Address of board '{}' could not be located.", mapping.board_id);
+			return;
 		}
 	}
 }
