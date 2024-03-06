@@ -1,19 +1,19 @@
 use std::{thread, time::Instant};
 
-use pyo3::{pyfunction, PyAny, PyResult};
+use pyo3::{methods, pyclass, pyfunction, pymethods, PyAny, PyObject, PyRef, PyRefMut, PyResult};
 
 use crate::sequence::unit::Duration;
 
 /// A Python-exposed function which waits the thread for the given duration.
 #[pyfunction]
-pub fn wait_for(duration: &Duration) {
+pub fn wait_for(duration: Duration) {
 	// TODO: considering using a different way to sleep, possibly sleeping only the GIL?
 	thread::sleep(duration.into());
 }
 
 /// A Python-exposed function which waits until a condition function is true, given an optional timeout and interval between checking.
 #[pyfunction]
-pub fn wait_until(condition: &PyAny, timeout: Option<&Duration>, poll_interval: Option<&Duration>) -> PyResult<()> {
+pub fn wait_until(condition: &PyAny, timeout: Option<Duration>, poll_interval: Option<Duration>) -> PyResult<()> {
 	let timeout = timeout.map_or(std::time::Duration::MAX, Into::into);
 	let interval = poll_interval.map_or(std::time::Duration::from_millis(10), Into::into);
 
@@ -24,4 +24,47 @@ pub fn wait_until(condition: &PyAny, timeout: Option<&Duration>, poll_interval: 
 	}
 
 	Ok(())
+}
+
+#[pyclass]
+#[derive(Clone, Debug)]
+pub struct IntervalIterator {
+	next_tick: Instant,
+	period: std::time::Duration,
+	iteration: i64,
+	total: i64,
+}
+
+#[pymethods]
+impl IntervalIterator {
+	fn __iter__(_self: PyRef<'_, Self>) -> PyRef<'_, Self> {
+		_self
+	}
+
+	fn __next__(mut _self: PyRefMut<'_, Self>) -> Option<i64> {
+		if _self.iteration >= _self.total {
+			return None;
+		}
+
+		let wait = _self.next_tick - Instant::now();
+		thread::sleep(wait);
+
+		let iteration = _self.iteration;
+		let next_tick = _self.next_tick + _self.period;
+
+		_self.next_tick = next_tick;
+		_self.iteration += 1;
+
+		Some(iteration)
+	}
+}
+
+#[pyfunction]
+pub fn interval(count: i64, period: Duration) -> IntervalIterator {
+	IntervalIterator {
+		next_tick: Instant::now(),
+		period: period.into(),
+		iteration: 0,
+		total: count
+	}
 }

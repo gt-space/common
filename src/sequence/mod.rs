@@ -48,7 +48,6 @@ fn sequences(py: Python<'_>, module: &PyModule) -> PyResult<()> {
 // + Send - requires that everything captured in the closure be safe to send across threads
 pub(crate) static DEVICE_HANDLER: Mutex<Option<Box<dyn Fn(&str, DeviceAction) -> Option<Measurement> + Send>>> = Mutex::new(None);
 pub(crate) static MAPPINGS: OnceLock<Arc<Mutex<Vec<NodeMapping>>>> = OnceLock::new();
-pub(crate) static SAM_SOCKET: OnceLock<UdpSocket> = OnceLock::new();
 
 /// Initializes the sequences portion of the library.
 pub fn initialize(mappings: Arc<Mutex<Vec<NodeMapping>>>) {
@@ -127,4 +126,8 @@ pub fn run(sequence: Sequence) {
 			fail!("Failed to run sequence '{}': {error}", sequence.name);
 		}
 	});
+}
+
+pub fn kill(name: &str) {
+	
 }
