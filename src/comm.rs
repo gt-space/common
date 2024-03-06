@@ -332,6 +332,9 @@ pub struct Trigger {
 
 	/// The script run when the condition is met, written in Python.
 	pub script: String,
+
+	/// Whether or not the trigger is active
+	pub active: bool,
 }
 
 /// A message sent from the control server to the flight computer.
