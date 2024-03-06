@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use std::borrow::Cow;
+use std::{borrow::Cow, net::IpAddr};
 use super::ChannelType;
 
 /// A control message send from the flight computer to a SAM board.
@@ -39,12 +39,31 @@ pub struct DataPoint {
 	pub channel_type: ChannelType,
 }
 
+/// String that represents the ID of a data board
+pub type BoardId = String;
+
 /// A generic data message that can originate from any subsystem.
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub enum DataMessage<'a> {
+	/// ID of who is trying to establish a connection with the FC
+	/// IP address representing where socket heartbeats and sequences will be sent to
+	Establish(BoardId, String),
+
+	/// Response from flight computer acknowledging Establish.
+	/// If Option is Some(IpAddr), then redirect data to that socket.
+	/// Otherwise, continue sending data to previous address. 
+	FlightEstablishAck(Option<String>),
+
+	/// Flight computer will send this after no response from data board
+	/// after extended period of time.
+	FlightHeartbeat,
+
+	/// Response from data board acknowledging FlightHeartbeat along with ID of data board.
+	HeartbeatAck(BoardId),
+
 	/// An array of channel data points.
-	Sam(Cow<'a, Vec<DataPoint>>),
+	Sam(BoardId, Cow<'a, Vec<DataPoint>>),
 	
 	/// Data originating from the BMS.
-	Bms,
+	Bms(BoardId),
 }
