@@ -5,11 +5,11 @@ mod unit;
 pub use device::*;
 pub use func::*;
 use jeflog::{fail, warn};
-use pyo3::{pymodule, types::PyModule, wrap_pyfunction, Py, PyResult, Python};
+use pyo3::{pymodule, types::PyModule, wrap_pyfunction, Py, PyObject, PyResult, Python};
 pub use unit::*;
 
-use crate::comm::{ChannelType, Measurement, NodeMapping, Sequence, ValveState, VehicleState};
-use std::{net::UdpSocket, sync::{Arc, Mutex, OnceLock}};
+use crate::comm::{NodeMapping, SensorType, Sequence, ValveState};
+use std::sync::{Arc, Mutex, OnceLock};
 
 #[pymodule]
 fn sequences(py: Python<'_>, module: &PyModule) -> PyResult<()> {
@@ -46,7 +46,7 @@ fn sequences(py: Python<'_>, module: &PyModule) -> PyResult<()> {
 // Box<dyn ...> - wraps the enclosed dynamic type on the heap, because it's exact size and type are unknown at compile-time
 // Fn(&str, DeviceAction) -> Option<Measurement> - the trait bound of the type of the closure being stored, with its arguments and return value
 // + Send - requires that everything captured in the closure be safe to send across threads
-pub(crate) static DEVICE_HANDLER: Mutex<Option<Box<dyn Fn(&str, DeviceAction) -> Option<Measurement> + Send>>> = Mutex::new(None);
+pub(crate) static DEVICE_HANDLER: Mutex<Option<Box<dyn Fn(&str, DeviceAction) -> PyObject + Send>>> = Mutex::new(None);
 pub(crate) static MAPPINGS: OnceLock<Arc<Mutex<Vec<NodeMapping>>>> = OnceLock::new();
 
 /// Initializes the sequences portion of the library.
@@ -77,7 +77,7 @@ pub enum DeviceAction {
 /// The first argument of this callback is a `&str` which is the name of the target device (typically a valve or sensor),
 /// and the second argument is the action to be performed by the handler. The return value is an `Option<Measurement>` because in
 /// the event of a read, a measurement will need to be returned, but a valve actuation requires no return.
-pub fn set_device_handler(handler: impl Fn(&str, DeviceAction) -> Option<Measurement> + Send + 'static) {
+pub fn set_device_handler(handler: impl Fn(&str, DeviceAction) -> PyObject + Send + 'static) {
 	let Ok(mut device_handler) = DEVICE_HANDLER.lock() else {
 		fail!("Failed to lock global device handler: Mutex is poisoned.");
 		return;

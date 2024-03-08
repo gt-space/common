@@ -1,6 +1,6 @@
 use crate::comm::ValveState;
 use jeflog::fail;
-use pyo3::{pyclass, pyclass::CompareOp, pymethods, types::PyNone, IntoPy, PyAny, PyObject, PyResult, Python, ToPyObject};
+use pyo3::{pyclass, pyclass::CompareOp, pymethods, types::PyNone, PyAny, PyObject, PyResult, Python, ToPyObject};
 use super::{DeviceAction, DEVICE_HANDLER};
 
 /// A Python-exposed class that allows for interacting with a sensor.
@@ -25,14 +25,7 @@ impl Sensor {
 			return Python::with_gil(|py| PyNone::get(py).to_object(py));
 		};
 
-		let measurement = device_handler(&self.name, DeviceAction::ReadSensor);
-
-		Python::with_gil(|py| {
-			measurement.map_or(
-				PyNone::get(py).to_object(py),
-				|measurement| measurement.into_py(py),
-			)
-		})
+		device_handler(&self.name, DeviceAction::ReadSensor)
 	}
 
 	fn __richcmp__(&self, other: &PyAny, op: CompareOp) -> PyResult<bool> {
