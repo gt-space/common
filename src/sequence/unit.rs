@@ -6,7 +6,7 @@ macro_rules! create_unit {
 	($name:ident, $abbrev:literal) => {
 		/// A unit struct representing a continuous physical property.
 		#[pyo3::pyclass]
-		#[derive(Clone, Copy, Debug)]
+		#[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
 		pub struct $name {
 			/// The contained raw value without its unit.
 			pub raw: f64
@@ -74,14 +74,14 @@ create_unit!(Force, "lbf");
 create_unit!(Pressure, "psi");
 create_unit!(Temperature, "K");
 
-impl From<&Duration> for std::time::Duration {
-	fn from(value: &Duration) -> Self {
+impl From<Duration> for std::time::Duration {
+	fn from(value: Duration) -> Self {
 		std::time::Duration::from_secs_f64(value.raw)
 	}
 }
 
-impl From<&std::time::Duration> for Duration {
-	fn from(value: &std::time::Duration) -> Self {
+impl From<std::time::Duration> for Duration {
+	fn from(value: std::time::Duration) -> Self {
 		Duration { raw: value.as_secs_f64() }
 	}
 }

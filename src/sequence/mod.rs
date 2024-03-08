@@ -8,7 +8,7 @@ use jeflog::{fail, warn};
 use pyo3::{pymodule, types::PyModule, wrap_pyfunction, Py, PyResult, Python};
 pub use unit::*;
 
-use crate::comm::{NodeMapping, Sequence, VehicleState, ChannelType};
+use crate::comm::{ChannelType, Measurement, NodeMapping, Sequence, ValveState, VehicleState};
 use std::{net::UdpSocket, sync::{Arc, Mutex, OnceLock}};
 
 #[pymodule]
@@ -40,22 +40,50 @@ fn sequences(py: Python<'_>, module: &PyModule) -> PyResult<()> {
 	Ok(())
 }
 
-// these are global, static variables defined for use in the sequences library and nowhere else.
-// they are necessary for passing this global state to be read or written to in the Valve and Sensor methods.
-// all of these should be properly and fully defined with initialize.
-pub(crate) static VEHICLE_STATE: OnceLock<Arc<Mutex<VehicleState>>> = OnceLock::new();
-pub(crate) static SAM_SOCKET: OnceLock<UdpSocket> = OnceLock::new();
+// let's break this one down:
+// Mutex<...> - required because this is a global variable, so needed to implement Sync and be used across threads safely
+// Option<...> - before initialization by set_device_handler, this will be None, so necessary for compiler to be happy
+// Box<dyn ...> - wraps the enclosed dynamic type on the heap, because it's exact size and type are unknown at compile-time
+// Fn(&str, DeviceAction) -> Option<Measurement> - the trait bound of the type of the closure being stored, with its arguments and return value
+// + Send - requires that everything captured in the closure be safe to send across threads
+pub(crate) static DEVICE_HANDLER: Mutex<Option<Box<dyn Fn(&str, DeviceAction) -> Option<Measurement> + Send>>> = Mutex::new(None);
 pub(crate) static MAPPINGS: OnceLock<Arc<Mutex<Vec<NodeMapping>>>> = OnceLock::new();
 
 /// Initializes the sequences portion of the library.
-pub fn initialize(vehicle_state: Arc<Mutex<VehicleState>>, mappings: Arc<Mutex<Vec<NodeMapping>>>) {
-	if VEHICLE_STATE.set(vehicle_state).is_err() || MAPPINGS.set(mappings).is_err() {
+pub fn initialize(mappings: Arc<Mutex<Vec<NodeMapping>>>) {
+	if MAPPINGS.set(mappings).is_err() {
 		warn!("Sequences library has already been initialized. Ignoring reinitialization.");
 		return;
 	}
 
 	pyo3::append_to_inittab!(sequences);
 	pyo3::prepare_freethreaded_python();
+}
+
+/// Given to the device handler to instruct it to perform a type of action.
+pub enum DeviceAction {
+	/// Instructs to read and return a sensor value.
+	ReadSensor,
+
+	/// Instructs to command a valve actuation to match the given state.
+	ActuateValve {
+		/// The state which the valve should be actuated to match, either `Open` or `Closed`.
+		state: ValveState
+	},
+}
+
+/// Sets the device handler callback, which interacts with external boards from the flight computer code.
+/// 
+/// The first argument of this callback is a `&str` which is the name of the target device (typically a valve or sensor),
+/// and the second argument is the action to be performed by the handler. The return value is an `Option<Measurement>` because in
+/// the event of a read, a measurement will need to be returned, but a valve actuation requires no return.
+pub fn set_device_handler(handler: impl Fn(&str, DeviceAction) -> Option<Measurement> + Send + 'static) {
+	let Ok(mut device_handler) = DEVICE_HANDLER.lock() else {
+		fail!("Failed to lock global device handler: Mutex is poisoned.");
+		return;
+	};
+
+	*device_handler = Some(Box::new(handler));
 }
 
 // TODO: change the run function to return an error in the event of one instead of printing out the error
@@ -98,4 +126,8 @@ pub fn run(sequence: Sequence) {
 			fail!("Failed to run sequence '{}': {error}", sequence.name);
 		}
 	});
+}
+
+pub fn kill(name: &str) {
+	
 }
