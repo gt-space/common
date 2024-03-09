@@ -196,6 +196,12 @@ pub enum FlightControlMessage {
 
 	/// A trigger to be checked by the flight computer.
 	Trigger(Trigger),
+
+	/// Instructs the flight computer to stop a sequence named with the `String` parameter.
+	StopSequence(String),
+
+	/// Instructs the flight computer to run an immediate abort.
+	Abort,
 }
 
 // #[cfg(test)]
