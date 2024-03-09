@@ -5,7 +5,7 @@ mod unit;
 pub use device::*;
 pub use func::*;
 use jeflog::{fail, warn};
-use pyo3::{pymodule, types::PyModule, wrap_pyfunction, Py, PyObject, PyResult, Python};
+use pyo3::{create_exception, pymodule, types::PyModule, wrap_pyfunction, Py, PyObject, PyResult, Python};
 pub use unit::*;
 
 use crate::comm::{NodeMapping, SensorType, Sequence, ValveState};
@@ -39,6 +39,8 @@ fn sequences(py: Python<'_>, module: &PyModule) -> PyResult<()> {
 
 	Ok(())
 }
+
+create_exception!(sequences, AbortError, pyo3::exceptions::PyException);
 
 // let's break this one down:
 // Mutex<...> - required because this is a global variable, so needed to implement Sync and be used across threads safely
@@ -125,8 +127,4 @@ pub fn run(sequence: Sequence) {
 			fail!("Failed to run sequence '{}': {error}", sequence.name);
 		}
 	});
-}
-
-pub fn kill(name: &str) {
-	
 }
