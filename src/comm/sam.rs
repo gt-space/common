@@ -174,21 +174,14 @@ pub type BoardId = String;
 /// A generic data message that can originate from any subsystem.
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub enum DataMessage<'a> {
-	/// ID of who is trying to establish a connection with the FC
-	/// IP address representing where socket heartbeats and sequences will be sent to
-	Establish(BoardId, String),
-
-	/// Response from flight computer acknowledging Establish.
-	/// If Option is Some(IpAddr), then redirect data to that socket.
-	/// Otherwise, continue sending data to previous address. 
-	FlightEstablishAck(Option<String>),
-
+	/// Represents the inital handshake between the FC and a data board.
+	/// When FC recieves this from the data board, it'll reciprocate by 
+	/// sending one of its own.
+	Identity(BoardId),
+	
 	/// Flight computer will send this after no response from data board
 	/// after extended period of time.
 	FlightHeartbeat,
-
-	/// Response from data board acknowledging FlightHeartbeat along with ID of data board.
-	HeartbeatAck(BoardId),
 
 	/// An array of channel data points.
 	Sam(BoardId, Cow<'a, Vec<DataPoint>>),
