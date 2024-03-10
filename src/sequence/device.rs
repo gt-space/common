@@ -1,6 +1,6 @@
 use crate::comm::ValveState;
 use jeflog::fail;
-use pyo3::{pyclass, pyclass::CompareOp, pymethods, types::PyNone, PyAny, PyObject, PyResult, Python, ToPyObject};
+use pyo3::{pyclass::CompareOp, pyclass, pymethods, types::{PyNone, PyString}, IntoPy, Py, PyAny, PyObject, PyResult, Python, ToPyObject};
 use super::{DeviceAction, DEVICE_HANDLER};
 
 /// A Python-exposed class that allows for interacting with a sensor.
@@ -46,6 +46,36 @@ impl Valve {
 	#[new]
 	pub fn new(name: String) -> Self {
 		Valve { name }
+	}
+
+	/// Determines if the valve is open.
+	pub fn is_open(&self) -> Option<bool> {
+		let Some(device_handler) = &*DEVICE_HANDLER.lock().unwrap() else {
+			fail!("Device handler not set before accessing external device.");
+			return None;
+		};
+
+		let state = device_handler(&self.name, DeviceAction::ReadValveState);
+
+		Python::with_gil(|py| {
+			let open: Py<PyAny> = "open".into_py(py);
+			state.into_ref(py).eq(open).ok()
+		})
+	}
+
+	/// Determines if the values is closed.
+	pub fn is_closed(&self) -> Option<bool> {
+		let Some(device_handler) = &*DEVICE_HANDLER.lock().unwrap() else {
+			fail!("Device handler not set before accessing external device.");
+			return None;
+		};
+
+		let state = device_handler(&self.name, DeviceAction::ReadValveState);
+
+		Python::with_gil(|py| {
+			let closed: Py<PyString> = "closed".into_py(py);
+			state.into_ref(py).eq(closed).ok()
+		})
 	}
 
 	/// Instructs the SAM board to open the valve.

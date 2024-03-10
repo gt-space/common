@@ -67,6 +67,9 @@ pub enum DeviceAction {
 	/// Instructs to read and return a sensor value.
 	ReadSensor,
 
+	/// Instructs to read the actual estimated valve state (as a string for now).
+	ReadValveState,
+
 	/// Instructs to command a valve actuation to match the given state.
 	ActuateValve {
 		/// The state which the valve should be actuated to match, either `Open` or `Closed`.
