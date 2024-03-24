@@ -1,3 +1,4 @@
+use postcard::experimental::max_size::MaxSize;
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, fmt};
 
@@ -67,7 +68,7 @@ impl VehicleState {
 }
 
 /// Used in a `NodeMapping` to determine which computer the action should be send to.
-#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Copy, Debug, Deserialize, Eq, MaxSize, PartialEq, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Computer {
 	/// The flight computer
