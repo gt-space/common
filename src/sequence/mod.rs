@@ -33,9 +33,12 @@ fn sequences(py: Python<'_>, module: &PyModule) -> PyResult<()> {
 
 	module.add_class::<Sensor>()?;
 	module.add_class::<Valve>()?;
+	module.add_class::<IntervalIterator>()?;
 
 	module.add_function(wrap_pyfunction!(wait_for, module)?)?;
 	module.add_function(wrap_pyfunction!(wait_until, module)?)?;
+	module.add_function(wrap_pyfunction!(abort, module)?)?;
+	module.add_function(wrap_pyfunction!(interval, module)?)?;
 
 	Ok(())
 }
