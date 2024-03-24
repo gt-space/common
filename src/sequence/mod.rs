@@ -75,6 +75,9 @@ pub enum DeviceAction {
 		/// The state which the valve should be actuated to match, either `Open` or `Closed`.
 		state: ValveState
 	},
+
+	/// Instructs to abort all sequences and run the saved abort sequence.
+	Abort,
 }
 
 /// Sets the device handler callback, which interacts with external boards from the flight computer code.

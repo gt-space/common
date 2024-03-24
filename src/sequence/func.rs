@@ -1,8 +1,11 @@
 use std::{thread, time::Instant};
 
-use pyo3::{methods, pyclass, pyfunction, pymethods, PyAny, PyObject, PyRef, PyRefMut, PyResult};
+use jeflog::fail;
+use pyo3::{pyclass, pyfunction, pymethods, PyAny, PyRef, PyRefMut, PyResult};
 
 use crate::sequence::unit::Duration;
+
+use super::{DeviceAction, DEVICE_HANDLER};
 
 /// A Python-exposed function which waits the thread for the given duration.
 #[pyfunction]
@@ -26,6 +29,18 @@ pub fn wait_until(condition: &PyAny, timeout: Option<Duration>, poll_interval: O
 	Ok(())
 }
 
+/// A Python-exposed function which immediately runs the abort sequence.
+#[pyfunction]
+pub fn abort() {
+	let Some(device_handler) = &*DEVICE_HANDLER.lock().unwrap() else {
+		fail!("Device handler not set before accessing external device.");
+		return;
+	};
+
+	device_handler("", DeviceAction::Abort);
+}
+
+/// Iterator which only yields the iteration after waiting for the given period.
 #[pyclass]
 #[derive(Clone, Debug)]
 pub struct IntervalIterator {
@@ -59,6 +74,7 @@ impl IntervalIterator {
 	}
 }
 
+/// A Python-exposed function which creates an iterator which yields the iteration after waiting for the period.
 #[pyfunction]
 pub fn interval(count: i64, period: Duration) -> IntervalIterator {
 	IntervalIterator {
