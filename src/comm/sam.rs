@@ -170,7 +170,7 @@ pub struct DataPoint {
 
 /// Board type used in identifying a board type
 #[derive(Clone, Copy, PartialEq, Eq, Deserialize, Serialize, Debug, Hash)]
-pub enum Board {
+pub enum BoardId {
 	/// Represents the Flight Computer 
 	Flight,
 
@@ -181,34 +181,24 @@ pub enum Board {
 	Ground,
 
 	/// Represents a SAM board
-	Sam,
+	Sam(u8),
 
 	/// Represents a BSM board
-	Bsm,
+	Bsm(u8),
 
 	/// Represents a GUI
-	Gui
+	Gui(u8)
 }
 
-/// A struct used to identify boards based on their type and number.
-#[derive(Copy, Clone, Debug, Deserialize, Serialize, Hash, PartialEq, Eq)]
-pub struct BIN {
-	/// the board type of the board this BIN is representing.
-	pub board: Board,
-
-	/// the identification number of the board this BIN is representing.
-	pub id: u8
-}
-
-impl fmt::Display for BIN {
+impl fmt::Display for BoardId {
 	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-		match self.board {
-			Board::Flight => write!(f, "flight-{}", self.id),
-			Board::Servo => write!(f, "servo-{}", self.id),
-			Board::Ground => write!(f, "ground-{}", self.id),
-			Board::Sam => write!(f, "sam-{}", self.id),
-			Board::Bsm => write!(f, "bsm-{}", self.id),
-			Board::Gui => write!(f, "gui-{}", self.id)
+		match self {
+			BoardId::Flight => write!(f, "flight-01"),
+			BoardId::Servo => write!(f, "servo-01"),
+			BoardId::Ground => write!(f, "ground-01"),
+			BoardId::Sam(id) => write!(f, "sam-{}", id),
+			BoardId::Bsm(id) => write!(f, "bsm-{}", id),
+			BoardId::Gui(id) => write!(f, "gui-{}", id)
 		}
 	}
 }
@@ -220,15 +210,15 @@ pub enum DataMessage<'a> {
 	/// Represents the inital handshake between the FC and a data board.
 	/// When FC recieves this from the data board, it'll reciprocate by 
 	/// sending one of its own.
-	Identity(BIN),
+	Identity(BoardId),
 	
 	/// Flight computer will send this after no response from data board
 	/// after extended period of time.
 	FlightHeartbeat,
 
 	/// An array of channel data points.
-	Sam(BIN, Cow<'a, Vec<DataPoint>>),
+	Sam(BoardId, Cow<'a, Vec<DataPoint>>),
 	
 	/// Data originating from the BMS.
-	Bms(BIN),
+	Bms(BoardId),
 }
