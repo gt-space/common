@@ -168,8 +168,35 @@ pub struct DataPoint {
 	pub channel_type: ChannelType,
 }
 
+/// Board type used in identifying a board type
+#[derive(Clone, Copy, PartialEq, Deserialize, Serialize, Debug)]
+pub enum Board {
+	/// Represents the Flight Computer 
+	Flight,
+
+	/// Represents Servo
+	Servo,
+
+	/// Represents the Ground Computer
+	Ground,
+
+	/// Represents a SAM board
+	Sam,
+
+	/// Represents a BSM board
+	Bsm
+}
+
+/// Represents a board's identification number relative to their board type (i. e. `flight-1` and `sam-1` are two different boards, although their identification numbers are the same).
+pub type IdentificationNumber = u8;
+
 /// String that represents the ID of a data board
-pub type BoardId = String;
+#[derive(Copy, Clone, Debug, Deserialize, Serialize, PartialEq)]
+pub struct BIN {
+	board: Board,
+	id: IdentificationNumber
+}
+
 
 /// A generic data message that can originate from any subsystem.
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
@@ -177,15 +204,15 @@ pub enum DataMessage<'a> {
 	/// Represents the inital handshake between the FC and a data board.
 	/// When FC recieves this from the data board, it'll reciprocate by 
 	/// sending one of its own.
-	Identity(BoardId),
+	Identity(BIN),
 	
 	/// Flight computer will send this after no response from data board
 	/// after extended period of time.
 	FlightHeartbeat,
 
 	/// An array of channel data points.
-	Sam(BoardId, Cow<'a, Vec<DataPoint>>),
+	Sam(BIN, Cow<'a, Vec<DataPoint>>),
 	
 	/// Data originating from the BMS.
-	Bms(BoardId),
+	Bms(BIN),
 }
