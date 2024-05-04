@@ -184,7 +184,10 @@ pub enum Board {
 	Sam,
 
 	/// Represents a BSM board
-	Bsm
+	Bsm,
+
+	/// Represents a GUI
+	Gui
 }
 
 /// Represents a board's identification number relative to their board type (i. e. `flight-1` and `sam-1` are two different boards, although their identification numbers are the same).
@@ -195,6 +198,19 @@ pub type IdentificationNumber = u8;
 pub struct BIN {
 	board: Board,
 	id: IdentificationNumber
+}
+
+impl fmt::Display for BIN {
+	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+		match self.board {
+			Board::Flight => write!(f, "flight-{}", self.id),
+			Board::Servo => write!(f, "servo-{}", self.id),
+			Board::Ground => write!(f, "ground-{}", self.id),
+			Board::Sam => write!(f, "sam-{}", self.id),
+			Board::Bsm => write!(f, "bsm-{}", self.id),
+			Board::Gui => write!(f, "gui-{}", self.id)
+		}
+	}
 }
 
 
