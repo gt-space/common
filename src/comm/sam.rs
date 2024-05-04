@@ -169,7 +169,7 @@ pub struct DataPoint {
 }
 
 /// Board type used in identifying a board type
-#[derive(Clone, Copy, PartialEq, Deserialize, Serialize, Debug, Hash)]
+#[derive(Clone, Copy, PartialEq, Eq, Deserialize, Serialize, Debug, Hash)]
 pub enum Board {
 	/// Represents the Flight Computer 
 	Flight,
@@ -194,7 +194,7 @@ pub enum Board {
 pub type IdentificationNumber = u8;
 
 /// String that represents the ID of a data board
-#[derive(Copy, Clone, Debug, Deserialize, Serialize, Hash, PartialEq)]
+#[derive(Copy, Clone, Debug, Deserialize, Serialize, Hash, PartialEq, Eq)]
 pub struct BIN {
 	board: Board,
 	id: IdentificationNumber
