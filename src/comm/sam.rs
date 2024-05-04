@@ -193,11 +193,14 @@ pub enum Board {
 /// Represents a board's identification number relative to their board type (i. e. `flight-1` and `sam-1` are two different boards, although their identification numbers are the same).
 pub type IdentificationNumber = u8;
 
-/// String that represents the ID of a data board
+/// A struct used to identify boards based on their type and number.
 #[derive(Copy, Clone, Debug, Deserialize, Serialize, Hash, PartialEq, Eq)]
 pub struct BIN {
-	board: Board,
-	id: IdentificationNumber
+	/// the board type of the board this BIN is representing.
+	pub board: Board,
+
+	/// the identification number of the board this BIN is representing.
+	pub id: IdentificationNumber
 }
 
 impl fmt::Display for BIN {
